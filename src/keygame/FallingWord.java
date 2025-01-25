@@ -7,38 +7,47 @@ public class FallingWord extends JLabel implements Runnable {
   private final int speed;
   private int x;
   private int y;
+  private boolean running;
   private final JFrame frame;
 
-  public FallingWord(JFrame frame, String word, int speed) {
-    this.frame = frame;
+  public FallingWord(String word, int speed, JFrame frame) {
     this.speed = speed;
-    x = (int) (Math.random() * 400);
-    y = 0;
-    setForeground(Color.WHITE);
+    this.x = (int) (Math.random() * 400); // 초기 x 위치 랜덤
+    this.y = 0; // 초기 y 위치
+    this.running = true;
+    this.frame = frame;
+
+    // UI 초기화
     setText(word);
+    setForeground(Color.WHITE);
     setSize(getPreferredSize());
     setLocation(x, y);
   }
 
   @Override
   public void run() {
-    while (y < 400) {
-      y += speed;
-      setLocation(x, y);
-      try {
-        System.out.printf("x: %d, y: %d\n", x, y);
+    try {
+      while (running && y < 400) { // 화면 끝에 도달할 때까지 실행
+        y += speed;
+        SwingUtilities.invokeLater(() -> setLocation(x, y));
         Thread.sleep(100);
-      } catch (InterruptedException e) {
-        e.printStackTrace();
       }
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+    } finally {
+      destroy(); // 항상 정리 작업 수행
     }
+  }
 
-    // Remove the word from the frame and stop the thread
-    // Remove the word from the frame and stop the thread
+  public void destroy() {
+    running = false;
     SwingUtilities.invokeLater(() -> {
-      frame.remove(this);          // Swing 컴포넌트에서 제거
-      System.out.println("FallingWord removed from frame."); // 제거 시점 확인
+      frame.remove(this);
       frame.repaint();
     });
+  }
+
+  public boolean isRunning() {
+    return running;
   }
 }
